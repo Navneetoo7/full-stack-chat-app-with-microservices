@@ -20,19 +20,25 @@ export const startSendOtpConsumer = async () => {
     channel.consume(queueName, async (msg) => {
       if (msg) {
         try {
-          const { to, subject, body } = JSON.parse(msg.content.toString());
+          const { to, subject, text } = JSON.parse(msg.content.toString());
+          console.log(
+            "Received OTP request for ${to}",
+            JSON.parse(msg.content.toString())
+          );
+
           const transporter = nodemailer.createTransport({
             host: "smtp.gmail.com",
             port: 465,
+            secure: true,
             auth: {
-              user: process.env.USER,
-              pass: process.env.PASS,
+              user: process.env.SMTP_USER,
+              pass: process.env.PASSWORD,
             },
           });
           await transporter.sendMail({
             to,
             subject,
-            text: body,
+            text,
           });
           console.log(`OTP mail sent to ${to}`);
           channel.ack(msg);
