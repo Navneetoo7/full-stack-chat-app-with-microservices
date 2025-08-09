@@ -218,7 +218,6 @@ export const getMessagesByChat = tryCatch(async (req: IsAuthRequest, res) => {
     return;
   }
   res.status(200).json({
-    message: "Messages fetched successfully",
     messages,
   });
 });
