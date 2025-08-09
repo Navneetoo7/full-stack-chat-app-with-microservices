@@ -4,6 +4,7 @@ const tryCatch = (handler) => {
             await handler(req, res, next);
         }
         catch (error) {
+            console.error("Error in tryCatch middleware:", error);
             res.status(500).json({
                 message: error instanceof Error ? error.message : "Unknown error",
             });
