@@ -153,3 +153,72 @@ export const sendMessage = tryCatch(async (req: IsAuthRequest, res) => {
     senderId: senderId,
   });
 });
+
+export const getMessagesByChat = tryCatch(async (req: IsAuthRequest, res) => {
+  const chatId = req.params.chatId;
+  const userId = req.user?._id;
+
+  if (!userId) {
+    return res.status(401).json({ message: "User not authenticated" });
+  }
+
+  if (!chatId) {
+    return res.status(400).json({ message: "Chat ID is required" });
+  }
+
+  const chat = await Chat.findById(chatId);
+  if (!chat) {
+    return res.status(404).json({ message: "Chat not found" });
+  }
+  const isUserInChat = chat.users.some(
+    (userId) => userId.toString() === req.user?._id.toString()
+  );
+
+  if (!isUserInChat) {
+    return res.status(403).json({ message: "User not part of this chat" });
+  }
+
+  const messagesToMarkSeen = await Messages.find({
+    chatId,
+    sender: { $ne: userId },
+    seen: false,
+  });
+
+  await Messages.updateMany(
+    {
+      chatId,
+      sender: { $ne: userId },
+      seen: false,
+    },
+    { seen: true, seenAt: new Date() }
+  );
+  const messages = await Messages.find({ chatId }).sort({ createdAt: 1 });
+
+  const otherUserId = chat.users.find(
+    (id) => id.toString() !== userId.toString()
+  );
+  try {
+    const { data } = await axios.get(
+      `${process.env.USER_SERVICE}/api/v1/user/${otherUserId}`
+    );
+    if (!otherUserId) {
+      return res.status(403).json({ message: "No other user" });
+    }
+    // socket work
+    res.status(200).json({
+      message: "Messages fetched successfully",
+      user: data,
+    });
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    res.json({
+      message: "Error fetching user data",
+      user: { _id: otherUserId, name: "Unknow user" },
+    });
+    return;
+  }
+  res.status(200).json({
+    message: "Messages fetched successfully",
+    messages,
+  });
+});
