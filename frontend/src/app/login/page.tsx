@@ -16,13 +16,14 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        "http://localhost:5050/api/auth/login",
-        { email }
-      );
+      const { data } = await axios.post("http://localhost:5051/api/v1/login", {
+        email,
+      });
+      console.log(data);
       alert(data.message);
       router.push("/verify?email=" + email);
     } catch (error: any) {
+      console.error("Error during login:", error);
       alert(error.response.data.message);
     } finally {
       setLoading(false);
