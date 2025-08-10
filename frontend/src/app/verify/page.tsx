@@ -35,6 +35,29 @@ const VerifyPage = () => {
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>): void => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").slice(0, 6);
+    if (pastedData.length === 6) {
+      const newOtp = pastedData.split("");
+      setOtp(newOtp);
+      newOtp.forEach((_, index) => {
+        inputRefs.current[index]?.focus();
+      });
+      setError("");
+    } else {
+      setError("Please paste a valid 6-digit OTP.");
+    }
+  };
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number
+  ): void => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
   const handleSubmit = async (
     e: React.FormEvent<HTMLElement>
   ): Promise<void> => {
