@@ -29,6 +29,7 @@ export const loginUser = tryCatch(async (req, res) => {
     });
 });
 export const verifyOtp = tryCatch(async (req, res) => {
+    console.log("-req.body", req.body);
     const { email, otp } = req.body;
     if (!email || !otp) {
         return res.status(400).json({

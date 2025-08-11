@@ -1,7 +1,9 @@
 "use client";
+import axios from "axios";
 import { ArrowRight, Loader2, Lock } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
+import cookies from "js-cookie";
 
 const VerifyPage = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -64,8 +66,48 @@ const VerifyPage = () => {
     e: React.FormEvent<HTMLElement>
   ): Promise<void> => {
     e.preventDefault();
+    const otpString = otp.join("");
+    if(otpString.length !== 6){
+      setError("Please enter 6 digit otp");
+      return
+    }
+    setError("")
     setLoading(true);
+    try {
+      const {data}= await axios.post(`http://localhost:5051/api/v1/verify-otp`,{
+        email,
+        otp: otpString
+      })
+      alert(data.message)
+      cookies.set("token", data.token,{
+        expires: 15,
+        secure:false,
+        path:"/"
+      })
+      setOtp(["", "", "", "", "", ""])
+      inputRefs.current[0]?.focus();
+    } catch (error:any) {
+      setError(error.response.data.message)
+    }finally{
+      setLoading(false)
+    }
   };
+
+  const handleResendOtp = async()=>{
+    setResendLoading(true);
+    setError("");
+    try {
+      const {data}= await axios.post("http://localhost:5051/api/v1/login",{
+        email,
+      })
+      alert(data.message)
+      setTimer(60)
+    } catch (error:any) {
+      setError(error.response.data.message);
+    }finally{
+      setResendLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
@@ -107,11 +149,11 @@ const VerifyPage = () => {
                     onChange={e => handleInputChange(index, e.target.value)}
                     onKeyDown={e => handleKeyDown(index, e)}
                     onPaste={index === 0 ? handlePaste : undefined}
-                    className="w-12 h-12 text-center text-xl font-bold border-2 border-gray-600 rounded-lg bg-gray-700 text-white" />
+                    className="w-12 h-12 text-center text-xl font-bold border-2 border-gray-600 rounded-lg bg-gray-700 text-white mb-2" />
                 ))}
               </div>
               {
-                error && (<div className="bg-red-900 border-red-700 rounded-lg p-3">
+                error && (<div className="bg-red-900 border-red-700 rounded-lg p-2">
                   <p className="text-red-300 text-sm text-center">{error}</p>
                 </div>
                 )}
@@ -136,8 +178,9 @@ const VerifyPage = () => {
           </form>
           <div className="mt-6 text-center">
             <p className="text-gray-400 text-sm mb-4">Don't receive the code?</p>
-            {timer>0 ? <p className=""></p>: <button className="text-blue-400 hover: text-blue-300 font-medium text-sm disabled: opacity-50"
-            disabled={resendLoading}  >{resendLoading?"sending...":"Resend Code"}</button> }
+            {timer>0 ? <p className="text-gray-400 text-sm">Resend code in {timer} second</p>: <button className="text-blue-400 hover:text-blue-300 font-medium text-sm disabled: opacity-50"
+            disabled={resendLoading}
+            onClick={handleResendOtp}>{resendLoading?"sending...":"Resend Code"}</button> }
           </div>
         </div>
       </div>
