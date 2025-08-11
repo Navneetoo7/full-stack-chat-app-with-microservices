@@ -24,6 +24,8 @@ const VerifyPage = () => {
     }
   }, [timer]);
 
+  console.log(timer)
+
   const handleInputChange = (index: number, value: string): void => {
     if (value.length > 1) return;
     const newOtp = [...otp];
@@ -37,7 +39,6 @@ const VerifyPage = () => {
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>): void => {
     e.preventDefault();
-    // const pastedData = e.clipboardData.getData("text").slice(0, 6);
     const pastedData = e.clipboardData.getData("text").slice(0, 6);
     const digits = pastedData.replace(/\D/g, "").slice(0, 6)
     if (digits.length === 6) {
@@ -58,6 +59,7 @@ const VerifyPage = () => {
       inputRefs.current[index - 1]?.focus();
     }
   };
+  
   const handleSubmit = async (
     e: React.FormEvent<HTMLElement>
   ): Promise<void> => {
