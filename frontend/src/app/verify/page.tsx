@@ -1,9 +1,10 @@
 "use client";
 import axios from "axios";
-import { ArrowRight, Loader2, Lock } from "lucide-react";
+import { ArrowRight, ChevronLeft, Loader2, Lock } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import cookies from "js-cookie";
+import { user_service } from "../../context/AppContext";
 
 const VerifyPage = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -74,7 +75,7 @@ const VerifyPage = () => {
     setError("")
     setLoading(true);
     try {
-      const {data}= await axios.post(`http://localhost:5051/api/v1/verify-otp`,{
+      const {data}= await axios.post(`${user_service}/api/v1/verify-otp`,{
         email,
         otp: otpString
       })
@@ -85,6 +86,7 @@ const VerifyPage = () => {
         path:"/"
       })
       setOtp(["", "", "", "", "", ""])
+      // router.push('/chat')
       inputRefs.current[0]?.focus();
     } catch (error:any) {
       setError(error.response.data.message)
@@ -97,7 +99,7 @@ const VerifyPage = () => {
     setResendLoading(true);
     setError("");
     try {
-      const {data}= await axios.post("http://localhost:5051/api/v1/login",{
+      const {data}= await axios.post(`${user_service}/api/v1/login`,{
         email,
       })
       alert(data.message)
@@ -113,7 +115,11 @@ const VerifyPage = () => {
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="bg-gray-800 border border-gray-700 rounded-lg p-8">
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 relative">
+            <button className="absolute top-0 left-0 p-2 text-gray-300 hover:text-white"
+            onClick={()=> router.push("/login")}>
+              <ChevronLeft className="w-6 h-6"/>
+            </button>
             <div className="mx-auto w-20 h-20 bg-blue-600 rounded-lg flex items-center justify-center mb-6">
               <Lock
                 size={40}
