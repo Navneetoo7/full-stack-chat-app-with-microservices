@@ -56,7 +56,7 @@ const LoginPage = () => {
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-300 mb-2"
-              ></label>
+              >Email Address</label>
               <input
                 type="email"
                 id="email"

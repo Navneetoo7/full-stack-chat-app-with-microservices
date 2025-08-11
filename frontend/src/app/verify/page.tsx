@@ -9,7 +9,7 @@ const VerifyPage = () => {
   const [error, setError] = useState<string>("");
   const [resendLoading, setResendLoading] = useState<boolean>(false);
   const [timer, setTimer] = useState(60);
-  const inputRefs = useRef<Array<HTMLInputElement>>([]);
+  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const router = useRouter();
 
   const searchParams = useSearchParams();
@@ -37,13 +37,13 @@ const VerifyPage = () => {
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>): void => {
     e.preventDefault();
+    // const pastedData = e.clipboardData.getData("text").slice(0, 6);
     const pastedData = e.clipboardData.getData("text").slice(0, 6);
-    if (pastedData.length === 6) {
-      const newOtp = pastedData.split("");
+    const digits = pastedData.replace(/\D/g, "").slice(0, 6)
+    if (digits.length === 6) {
+      const newOtp = digits.split("");
       setOtp(newOtp);
-      newOtp.forEach((_, index) => {
-        inputRefs.current[index]?.focus();
-      });
+      inputRefs.current[5]?.focus()
       setError("");
     } else {
       setError("Please paste a valid 6-digit OTP.");
@@ -51,8 +51,8 @@ const VerifyPage = () => {
   };
 
   const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
   ): void => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
@@ -90,18 +90,29 @@ const VerifyPage = () => {
           >
             <div>
               <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-300 mb-2"
-              ></label>
-              <input
-                type="email"
-                id="email"
-                className="w-full px-4 py-4 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400"
-                placeholder="Enter Your email address"
-                // value={email}
-                // onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+                className="block text-sm font-medium text-gray-300 mb-4 text-center"
+              >
+                Enter your 6 digit otp here
+              </label>
+              <div className="flex justify-center in-checked: space-x-3">
+                {otp.map((digit, index) => (
+                  <input key={index} ref={(el: HTMLInputElement | null) => {
+                    inputRefs.current[index] = el;
+                  }}
+                    type="text"
+                    maxLength={1}
+                    value={digit}
+                    onChange={e => handleInputChange(index, e.target.value)}
+                    onKeyDown={e => handleKeyDown(index, e)}
+                    onPaste={index === 0 ? handlePaste : undefined}
+                    className="w-12 h-12 text-center text-xl font-bold border-2 border-gray-600 rounded-lg bg-gray-700 text-white" />
+                ))}
+              </div>
+              {
+                error && (<div className="bg-red-900 border-red-700 rounded-lg p-3">
+                  <p className="text-red-300 text-sm text-center">{error}</p>
+                </div>
+                )}
               <button
                 type="submit"
                 disabled={loading}
@@ -121,6 +132,11 @@ const VerifyPage = () => {
               </button>
             </div>
           </form>
+          <div className="mt-6 text-center">
+            <p className="text-gray-400 text-sm mb-4">Don't receive the code?</p>
+            {timer>0 ? <p className=""></p>: <button className="text-blue-400 hover: text-blue-300 font-medium text-sm disabled: opacity-50"
+            disabled={resendLoading}  >{resendLoading?"sending...":"Resend Code"}</button> }
+          </div>
         </div>
       </div>
     </div>
